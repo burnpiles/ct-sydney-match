@@ -14,6 +14,15 @@
     <link rel="icon" type="image/png" href="media/ctlight.png">
     <link rel="apple-touch-icon" href="media/ctlight.png">
     
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+    
     <!-- Performance optimizations -->
     <link rel="dns-prefetch" href="//raw.githubusercontent.com">
     <link rel="preconnect" href="https://raw.githubusercontent.com">
@@ -47,7 +56,7 @@
             <div class="microcopy">Sydney's Jeans Went Viral<br>Help Her Go Viral Again</div>
             <button class="cta play-btn" onclick="gameManager.startGame()" aria-label="Start game">PLAY GAME</button>
             <div class="or-divider">OR</div>
-            <a href="https://contrarianthinking.co/subscribe/?utm_source=contragames&utm_medium=contragames&utm_campaign=contragames&utm_id=contragames" class="cta business-btn" target="_blank" aria-label="Start a real business">START A REAL BUSINESS</a>
+            <a href="https://contrarianthinking.co/subscribe/?utm_source=contragames&utm_medium=contragames&utm_campaign=contragames&utm_id=contragames" class="cta business-btn" target="_blank" aria-label="Start a real business" onclick="if(typeof gtag !== 'undefined') gtag('event', 'business_click', {'event_category': 'conversion', 'event_label': 'start_screen'});">START A REAL BUSINESS</a>
 
         </div>
     </div>
@@ -343,6 +352,14 @@
                     startScreen.style.display = 'none';
                 }
                 
+                // Track game start
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'game_start', {
+                        'event_category': 'gameplay',
+                        'event_label': 'Sydney Vision'
+                    });
+                }
+                
                 // Reset animation panel to general GIF
                 this.resetAnimationPanel();
                 
@@ -377,6 +394,14 @@
                 });
                 
                 this.gameEngine.addEventListener('gameCompleted', () => {
+                    // Track game completion
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'game_complete', {
+                            'event_category': 'gameplay',
+                            'event_label': 'Sydney Vision',
+                            'value': this.gameEngine.score
+                        });
+                    }
                     this.showCompletionWithViralStats();
                 });
                 

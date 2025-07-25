@@ -716,6 +716,15 @@ class GameEngine {
                 this.score++;
                 newCompanies.push(company);
                 console.log(`=== GAME ENGINE: New company found: ${company}, score: ${this.score} ===`);
+                
+                // Track new company match with Google Analytics
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'company_match', {
+                        'event_category': 'gameplay',
+                        'event_label': company,
+                        'value': this.score
+                    });
+                }
             }
             
             // Increment match count for this company (regardless of whether it's new)

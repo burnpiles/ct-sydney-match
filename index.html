@@ -219,12 +219,19 @@
             <div class="completion-body">
                 <div class="completion-text">
                     <p class="viral-message">BUT... Going Viral Is Not A Real Business Strategy</p>
-                    <p class="business-message">Are You Ready To Start An Actual Business?</p>
+                </div>
+                
+                <div class="business-section">
+                    <h2 class="business-heading">BECOME A BOSS</h2>
+                    <p class="newsletter-text">Main Street Minute Newsletter</p>
+                    <form class="email-subscribe-form" onsubmit="handleSubscribe(event)">
+                        <input type="email" placeholder="Enter your email" class="email-input" id="emailInputCompletion" required>
+                        <button type="submit" class="subscribe-btn">SUBMIT</button>
+                    </form>
                 </div>
             </div>
             
             <div class="completion-buttons">
-                <a href="https://contrarianthinking.co/subscribe/?utm_source=contragames&utm_medium=contragames&utm_campaign=contragames&utm_id=contragames" target="_blank" class="cta-button business-btn" aria-label="Start a business">START A BUSINESS</a>
                 <button class="cta-button play-again-btn" onclick="gameManager.playAgain()" aria-label="Play again">PLAY AGAIN</button>
             </div>
             
@@ -803,7 +810,8 @@
         window.handleSubscribe = function(event) {
             event.preventDefault();
             
-            const emailInput = document.getElementById('emailInput');
+            // Handle both start screen and completion screen email inputs
+            const emailInput = event.target.querySelector('.email-input');
             const email = emailInput.value.trim();
             
             if (!email || !email.includes('@')) {

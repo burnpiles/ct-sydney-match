@@ -56,7 +56,14 @@
             <div class="microcopy">Sydney's Jeans Went Viral<br>Help Her Go Viral Again</div>
             <button class="cta play-btn" onclick="gameManager.startGame()" aria-label="Start game">PLAY GAME</button>
             <div class="or-divider">OR</div>
-            <a href="https://contrarianthinking.co/subscribe/?utm_source=contragames&utm_medium=contragames&utm_campaign=contragames&utm_id=contragames" class="cta business-btn" target="_blank" aria-label="Start a real business" onclick="if(typeof gtag !== 'undefined') gtag('event', 'business_click', {'event_category': 'conversion', 'event_label': 'start_screen'});">START A REAL BUSINESS</a>
+            <div class="business-section">
+                <h2 class="business-heading">BECOME A BOSS</h2>
+                <p class="newsletter-text">Main Street Minute Newsletter</p>
+                <form class="email-subscribe-form" onsubmit="handleSubscribe(event)">
+                    <input type="email" placeholder="Enter your email" class="email-input" id="emailInput" required>
+                    <button type="submit" class="subscribe-btn">SUBMIT</button>
+                </form>
+            </div>
 
         </div>
     </div>
@@ -790,6 +797,83 @@
                 backgroundMusic.volume = Math.max(0, Math.min(1, volume));
                 console.log('Music volume set to:', volume);
             }
+        };
+
+        // Email subscription function with your API credentials
+        window.handleSubscribe = function(event) {
+            event.preventDefault();
+            
+            const emailInput = document.getElementById('emailInput');
+            const email = emailInput.value.trim();
+            
+            if (!email || !email.includes('@')) {
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = event.target.querySelector('.subscribe-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Subscribing...';
+            submitBtn.disabled = true;
+            
+            // Your Beehiiv API credentials and data
+            const subscriptionData = {
+                email: email,
+                publication_id: 'af855f40-23cd-4896-98f2-57d8960740e1',
+                reactivate_existing: false,
+                send_welcome_email: true,
+                utm_source: 'contragames',
+                utm_medium: 'sydney_vision',
+                utm_campaign: 'game_subscription'
+            };
+            
+            console.log('Subscribing with your API key and pub ID:', subscriptionData);
+            
+            // Direct API call to Beehiiv with your credentials
+            fetch(`https://api.beehiiv.com/v2/publications/af855f40-23cd-4896-98f2-57d8960740e1/subscriptions`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer a7ROzXt8m5RiJWO9GRHDwWk7C0MNdbwyoxme0NYiCmUWaDzNkR1ulmdmdOT15r2U',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(subscriptionData)
+            })
+            .then(response => {
+                console.log('API Response status:', response.status);
+                console.log('API Response headers:', response.headers);
+                
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => {
+                        console.log('Error response body:', text);
+                        throw new Error(`API Error: ${response.status} - ${text}`);
+                    });
+                }
+            })
+            .then(data => {
+                console.log('Subscription successful:', data);
+                alert('Thank you for subscribing! Check your email for confirmation.');
+                emailInput.value = '';
+                
+                // Track subscription
+                if (typeof gtag !== 'undefined') {
+                    gtag('event', 'email_subscription', {
+                        'event_category': 'conversion',
+                        'event_label': 'start_screen'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Subscription error:', error);
+                alert('Sorry, there was an error. Please try again or contact support.');
+            })
+            .finally(() => {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
         };
 
         // Accordion toggle function for new start screen

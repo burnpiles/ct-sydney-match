@@ -275,25 +275,48 @@ class Renderer {
     }
 
     updateBoard(board) {
-        console.log('=== RENDERER: updateBoard called with board:', board);
+        // Optimized board update with reduced logging and better performance
+        if (!this.gameBoard) return;
         
         // Clear any existing animations and selections first
         this.tiles.forEach(tile => {
             tile.classList.remove('matched', 'falling', 'invalid', 'selected', 'pulsing', 'queued', 'highlighted');
-            tile.style.pointerEvents = 'auto'; // Ensure tiles are clickable
+            tile.style.pointerEvents = 'auto';
         });
         
+        // Batch updates for better performance
+        const updates = [];
+        this.tiles.forEach((tile, index) => {
+            const company = board[index];
+            const currentCompany = tile.dataset.company;
+            
+            // Handle null/empty tiles
+            if (company === null) {
+                if (currentCompany !== '') {
+                    updates.push({ tile, action: 'clear' });
+                }
+                return;
+            }
+            
+            // Reset opacity for non-empty tiles
+            tile.style.opacity = '1';
+            
+            // If the tile content is changing, queue update
+            if (company !== currentCompany) {
+                updates.push({ tile, action: 'update', company });
+            } else {
+                // No change, just clear any existing animations
+                tile.classList.remove('matched', 'falling', 'invalid', 'selected');
+                tile.style.transform = '';
+                tile.style.transition = '';
+                tile.style.background = '';
+            }
+        });
+        
+        // Apply updates in batch
         requestAnimationFrame(() => {
-            this.tiles.forEach((tile, index) => {
-                const company = board[index];
-                const currentCompany = tile.dataset.company;
-                
-                console.log(`Tile ${index}: company=${company}, currentCompany=${currentCompany}`);
-                
-                // Handle null/empty tiles
-                if (company === null) {
-                    console.log(`Clearing tile ${index} - setting to empty`);
-                    // Clear the tile completely
+            updates.forEach(({ tile, action, company }) => {
+                if (action === 'clear') {
                     tile.textContent = '';
                     tile.dataset.company = '';
                     tile.classList.remove('matched', 'falling', 'invalid', 'selected', 'pulsing', 'queued');
@@ -301,44 +324,26 @@ class Renderer {
                     tile.style.transition = '';
                     tile.style.background = '';
                     tile.style.opacity = '0.3';
-                    tile.style.pointerEvents = 'none'; // Disable clicks on empty tiles
-                    return;
-                }
-                
-                // Reset opacity for non-empty tiles
-                tile.style.opacity = '1';
-                
-                // If the tile content is changing, animate the transition
-                if (company !== currentCompany) {
-                    console.log(`Tile ${index} changing from ${currentCompany} to ${company}`);
-                    
-                    // Update content immediately first
+                    tile.style.pointerEvents = 'none';
+                } else if (action === 'update') {
+                    // Update content immediately
                     tile.textContent = this.gameEngine.companyEmojis[company];
                     tile.dataset.company = company;
                     
-                    // For gravity animations, we want a clear top-to-bottom effect
-                    // All tiles should animate from above (simulating gravity)
-                    tile.style.transition = 'none';
-                    tile.style.transform = 'translateY(-40px)';
+                    // Simplified gravity animation
+                    tile.style.transition = 'transform 0.3s ease-out';
+                    tile.style.transform = 'translateY(-20px)';
                     
-                    // Force a reflow
-                    tile.offsetHeight;
-                    
-                    // Animate to position with gravity-like timing
-                    tile.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-                    tile.style.transform = 'translateY(0)';
+                    // Animate to position
+                    requestAnimationFrame(() => {
+                        tile.style.transform = 'translateY(0)';
+                    });
                     
                     // Clear transition after animation
                     setTimeout(() => {
                         tile.style.transition = '';
                         tile.style.transform = '';
-                    }, 400);
-                } else {
-                    // No change, just clear any existing animations and selections
-                    tile.classList.remove('matched', 'falling', 'invalid', 'selected');
-                    tile.style.transform = '';
-                    tile.style.transition = '';
-                    tile.style.background = '';
+                    }, 300);
                 }
             });
         });
@@ -632,6 +637,15 @@ class Renderer {
             scoreBreakdown.style.display = 'none';
         }
         
+        // Reset GIF to start state
+        const sydneyGif = document.getElementById('sydneyGif');
+        if (sydneyGif) {
+            sydneyGif.src = 'https://raw.githubusercontent.com/burnpiles/ct-sydney-match/main/media/general-sydney-small.gif';
+        }
+        
+        // Reset digital channel display to default state
+        this.updateDigitalChannelDisplay(null);
+        
         // Clear any active animations - DISABLED
         // const tvScreen = document.querySelector('.tv-screen');
         // if (tvScreen) {
@@ -644,7 +658,7 @@ class Renderer {
             item.classList.remove('animating');
         });
         
-        console.log('=== RENDERER: UI completely reset - all inline styles cleared ===');
+        console.log('=== RENDERER: UI completely reset - all inline styles cleared and GIF reset to start state ===');
     }
 
     showCompletion() {
@@ -673,6 +687,39 @@ class Renderer {
             setTimeout(() => {
                 this.updateBoard([...this.gameEngine.board]);
             }, 50);
+        }
+    }
+    
+    // Update the digital TV channel display
+    updateDigitalChannelDisplay(company) {
+        const channelDisplay = document.querySelector('.digital-channel-display');
+        if (!channelDisplay) return;
+        
+        const companyNameDisplay = channelDisplay.querySelector('.company-name-display');
+        const companyEmojiDisplay = channelDisplay.querySelector('.company-emoji-display');
+        const channelNumber = channelDisplay.querySelector('.channel-number');
+        
+        if (companyNameDisplay && companyEmojiDisplay && channelNumber) {
+            // Add channel surfing animation
+            channelDisplay.classList.add('channel-surfing');
+            
+            if (company) {
+                // Show company name in channel-number (LIVE is already in live-indicator)
+                const companyName = company.charAt(0).toUpperCase() + company.slice(1).toUpperCase();
+                channelNumber.textContent = companyName;
+                companyNameDisplay.textContent = '';
+                companyEmojiDisplay.textContent = this.gameEngine.companyEmojis[company];
+            } else {
+                // Default state
+                channelNumber.textContent = 'CH 00';
+                companyNameDisplay.textContent = 'SYDNEY VISION';
+                companyEmojiDisplay.textContent = '📺';
+            }
+            
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                channelDisplay.classList.remove('channel-surfing');
+            }, 500);
         }
     }
     

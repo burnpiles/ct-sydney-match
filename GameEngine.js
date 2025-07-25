@@ -59,7 +59,9 @@ class GameEngine {
             'sydneyGif', 'animationText', 'animationBanner', 
             'bannerEmoji', 'bannerEmoji2', 'bannerCompany',
             'sydneyGifMobile', 'animationTextMobile', 'animationBannerMobile',
-            'bannerEmojiMobile', 'bannerEmoji2Mobile', 'bannerCompanyMobile'
+            'bannerEmojiMobile', 'bannerEmoji2Mobile', 'bannerCompanyMobile',
+            'gameBoard', 'total-matches', 'apple-count', 'tesla-count', 'netflix-count',
+            'starbucks-count', 'amazon-count', 'openai-count', 'nike-count', 'spotify-count'
         ];
         elements.forEach(id => {
             this.domCache.set(id, document.getElementById(id));
@@ -79,17 +81,20 @@ class GameEngine {
             return;
         }
         
-        try {
-            this.listeners.get(event).forEach(callback => {
-                try {
-                    callback(data);
-                } catch (error) {
-                    console.error(`Error in event listener for ${event}:`, error);
-                }
-            });
-        } catch (error) {
-            console.error(`Error emitting event ${event}:`, error);
-        }
+        // Use requestAnimationFrame for better performance
+        requestAnimationFrame(() => {
+            try {
+                this.listeners.get(event).forEach(callback => {
+                    try {
+                        callback(data);
+                    } catch (error) {
+                        console.error(`Error in event listener for ${event}:`, error);
+                    }
+                });
+            } catch (error) {
+                console.error(`Error emitting event ${event}:`, error);
+            }
+        });
     }
 
     // Initialize game board
@@ -472,41 +477,39 @@ class GameEngine {
                (Math.abs(col1 - col2) === 1 && row1 === row2);
     }
 
-    // Find all matches in the current board (improved for standard match-3)
+    // Find all matches in the current board (optimized for performance)
     findMatches() {
         const matches = [];
         const specialMatches = [];
+        const boardSize = this.boardSize;
+        const board = this.board;
         
         // Check horizontal matches (3, 4, 5+ tiles)
-        for (let row = 0; row < this.boardSize; row++) {
-            for (let col = 0; col < this.boardSize - 2; col++) {
-                const index = row * this.boardSize + col;
-                const tile = this.board[index];
+        for (let row = 0; row < boardSize; row++) {
+            let col = 0;
+            while (col < boardSize - 2) {
+                const index = row * boardSize + col;
+                const tile = board[index];
                 
-                if (tile === null) continue;
+                if (tile === null) {
+                    col++;
+                    continue;
+                }
                 
                 // Find consecutive matches
                 let matchLength = 1;
                 let matchIndices = [index];
                 
                 // Check right
-                for (let i = 1; col + i < this.boardSize; i++) {
-                    if (this.board[index + i] === tile) {
-                        matchLength++;
-                        matchIndices.push(index + i);
-                    } else {
-                        break;
-                    }
+                for (let i = 1; col + i < boardSize && board[index + i] === tile; i++) {
+                    matchLength++;
+                    matchIndices.push(index + i);
                 }
                 
                 // Check left
-                for (let i = 1; col - i >= 0; i++) {
-                    if (this.board[index - i] === tile) {
-                        matchLength++;
-                        matchIndices.unshift(index - i);
-                    } else {
-                        break;
-                    }
+                for (let i = 1; col - i >= 0 && board[index - i] === tile; i++) {
+                    matchLength++;
+                    matchIndices.unshift(index - i);
                 }
                 
                 // Add match if 3 or more
@@ -514,43 +517,42 @@ class GameEngine {
                     if (matchLength >= 5) {
                         specialMatches.push({ type: 'line-clear', indices: matchIndices, direction: 'horizontal' });
                     } else {
-                        // Treat 4x matches as regular matches to prevent crashes
                         matches.push(matchIndices);
                     }
+                    // Skip the matched tiles in next iteration
+                    col += matchLength;
+                } else {
+                    col++;
                 }
             }
         }
         
         // Check vertical matches (3, 4, 5+ tiles)
-        for (let col = 0; col < this.boardSize; col++) {
-            for (let row = 0; row < this.boardSize - 2; row++) {
-                const index = row * this.boardSize + col;
-                const tile = this.board[index];
+        for (let col = 0; col < boardSize; col++) {
+            let row = 0;
+            while (row < boardSize - 2) {
+                const index = row * boardSize + col;
+                const tile = board[index];
                 
-                if (tile === null) continue;
+                if (tile === null) {
+                    row++;
+                    continue;
+                }
                 
                 // Find consecutive matches
                 let matchLength = 1;
                 let matchIndices = [index];
                 
                 // Check down
-                for (let i = 1; row + i < this.boardSize; i++) {
-                    if (this.board[index + i * this.boardSize] === tile) {
-                        matchLength++;
-                        matchIndices.push(index + i * this.boardSize);
-                    } else {
-                        break;
-                    }
+                for (let i = 1; row + i < boardSize && board[index + i * boardSize] === tile; i++) {
+                    matchLength++;
+                    matchIndices.push(index + i * boardSize);
                 }
                 
                 // Check up
-                for (let i = 1; row - i >= 0; i++) {
-                    if (this.board[index - i * this.boardSize] === tile) {
-                        matchLength++;
-                        matchIndices.unshift(index - i * this.boardSize);
-                    } else {
-                        break;
-                    }
+                for (let i = 1; row - i >= 0 && board[index - i * boardSize] === tile; i++) {
+                    matchLength++;
+                    matchIndices.unshift(index - i * boardSize);
                 }
                 
                 // Add match if 3 or more
@@ -558,14 +560,17 @@ class GameEngine {
                     if (matchLength >= 5) {
                         specialMatches.push({ type: 'line-clear', indices: matchIndices, direction: 'vertical' });
                     } else {
-                        // Treat 4x matches as regular matches to prevent crashes
                         matches.push(matchIndices);
                     }
+                    // Skip the matched tiles in next iteration
+                    row += matchLength;
+                } else {
+                    row++;
                 }
             }
         }
         
-        // Check for L and T shapes (special combinations)
+        // Check for L and T shapes (special combinations) - simplified for performance
         this.findLAndTMatches(matches, specialMatches);
         
         return { matches, specialMatches };
@@ -1324,6 +1329,16 @@ class GameEngine {
     // Reset game state
     restartGame() {
         this.initGame();
+        
+        // Reset GIF to start state
+        const sydneyGif = document.getElementById('sydneyGif');
+        if (sydneyGif) {
+            sydneyGif.src = 'https://raw.githubusercontent.com/burnpiles/ct-sydney-match/main/media/general-sydney-small.gif';
+        }
+        
+        // Reset digital channel display to default state
+        this.updateDigitalChannelDisplay(null);
+        
         this.emit('gameRestarted');
     }
 

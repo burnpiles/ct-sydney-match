@@ -133,10 +133,20 @@ class TouchHandler {
     createDragClone() {
         if (!this.draggedTile) return;
         
-        // Create a clone of the tile for dragging
-        this.dragClone = this.draggedTile.cloneNode(true);
+        // Create a simple div for dragging (not a clone to avoid CSS inheritance)
+        this.dragClone = document.createElement('div');
+        this.dragClone.textContent = this.draggedTile.textContent;
         this.dragClone.style.position = 'fixed';
         this.dragClone.style.zIndex = '1000';
+        this.dragClone.style.fontSize = '28px';
+        this.dragClone.style.display = 'flex';
+        this.dragClone.style.alignItems = 'center';
+        this.dragClone.style.justifyContent = 'center';
+        this.dragClone.style.width = '50px';
+        this.dragClone.style.height = '50px';
+        this.dragClone.style.borderRadius = '12px';
+        this.dragClone.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        this.dragClone.style.border = '1px solid rgba(0, 255, 65, 0.2)';
         this.draggedTile.style.opacity = '0.3'; // Make original semi-transparent
         
         // Add clone to body
@@ -157,7 +167,7 @@ class TouchHandler {
         this.dragClone.style.left = newX + 'px';
         this.dragClone.style.top = newY + 'px';
         this.dragClone.style.transform = 'scale(1.1)';
-        this.dragClone.style.boxShadow = '0 0 20px rgba(255, 235, 59, 0.8)';
+        this.dragClone.style.boxShadow = '0 0 8px rgba(0, 255, 65, 0.6)';
     }
 
     handleTouchEnd(e) {

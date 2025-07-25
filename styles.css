@@ -1239,6 +1239,16 @@ body::before {
     animation: highlightedPulse 1.5s ease-in-out infinite;
 }
 
+/* Mobile fix: Disable infinite animation to prevent stuck highlighting */
+@media (max-width: 768px) {
+    .match-counter-item.highlighted {
+        animation: none; /* Disable infinite animation on mobile */
+        border-color: #ffff00;
+        box-shadow: 0 0 20px rgba(255, 255, 0, 0.6);
+        background: linear-gradient(135deg, rgba(255, 255, 0, 0.1), rgba(255, 255, 0, 0.05));
+    }
+}
+
 @keyframes highlightedPulse {
     0%, 100% { 
         box-shadow: 0 0 20px rgba(255, 255, 0, 0.6);
@@ -1554,6 +1564,14 @@ body::before {
   margin-bottom: 16px;
   text-shadow: 0 0 8px #00cc33, 0 0 16px #00cc33aa;
   letter-spacing: 0.05em;
+}
+
+/* Mobile override to make title fit on one line */
+@media (max-width: 768px) {
+  .game-title-start {
+    font-size: 1.4rem; /* Reduced from 1.8rem to fit on one line */
+    white-space: nowrap; /* Ensure it stays on one line */
+  }
 }
 
 /* Headline */
@@ -2307,27 +2325,36 @@ body::before {
     }
     
     .match-counter-grid {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 4px 4px !important; /* 4px row gap, 4px column gap - remove row gaps */
+        row-gap: 0px !important; /* Remove row gaps completely */
     }
     
     .match-counter-item {
-        padding: 6px 3px;
+        padding: 2px 2px !important; /* Equal padding to make squares */
+        aspect-ratio: 1 !important; /* Force square shape */
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
     
     .counter-emoji {
-        font-size: 1rem;
-        margin-bottom: 2px;
+        font-size: 1rem; /* Keep emoji size the same */
+        margin-bottom: 1px; /* Reduced spacing */
+        line-height: 1;
     }
     
     .counter-name {
-        font-size: 0.6rem;
-        margin-bottom: 1px;
+        font-size: 0.6rem; /* Keep text size the same */
+        margin-bottom: 0px;
+        line-height: 1;
     }
     
     .counter-count {
-        font-size: 0.9rem;
-        margin-top: 3px;
+        font-size: 0.9rem; /* Keep count size the same */
+        margin-top: 1px; /* Reduced spacing */
+        line-height: 1;
     }
     
     @media (max-width: 480px) {
@@ -2367,27 +2394,36 @@ body::before {
         }
         
         .match-counter-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 4px 4px !important; /* 4px row gap, 4px column gap */
+            row-gap: 0px !important; /* Remove row gaps completely */
         }
         
         .match-counter-item {
-            padding: 4px 2px;
+            padding: 2px 2px !important; /* Equal padding to make squares */
+            aspect-ratio: 1 !important; /* Force square shape */
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         
         .counter-emoji {
-            font-size: 0.9rem;
+            font-size: 0.9rem; /* Keep emoji size the same */
             margin-bottom: 1px;
+            line-height: 1;
         }
         
         .counter-name {
-            font-size: 0.5rem;
+            font-size: 0.5rem; /* Keep text size the same */
             margin-bottom: 1px;
+            line-height: 1;
         }
         
         .counter-count {
-            font-size: 0.8rem;
-            margin-top: 2px;
+            font-size: 0.8rem; /* Keep count size the same */
+            margin-top: 1px; /* Reduced spacing */
+            line-height: 1;
         }
     }
     
@@ -2451,15 +2487,18 @@ body::before {
         max-width: none;
         height: 500px;
         margin: 0;
-        margin-top: 10px; /* Small gap below TV */
+        margin-top: -25px; /* Shifted up 35px from 10px */
         padding: 10px; /* Reduced by 50% from desktop 20px */
     }
     
     .retro-tv-frame {
         padding: 15px;
         max-width: none;
+        width: calc(100% + 40px); /* Widen by 40px */
         height: 500px;
-        margin-top: 30px; /* Space for antenna */
+        margin-top: 15px; /* Shifted down 5px from 10px */
+        margin-left: -20px; /* Center the extra width */
+        margin-right: -20px; /* Center the extra width */
         position: relative; /* For positioning title */
     }
     
@@ -2467,7 +2506,7 @@ body::before {
     .retro-tv-frame::before {
         content: 'SYDNEY VISION';
         position: absolute;
-        top: 25px;
+        top: 7px; /* Shifted down 5px from 2px */
         left: 50%;
         transform: translateX(-50%);
         font-family: 'Orbitron', 'Courier New', monospace;
@@ -2488,10 +2527,16 @@ body::before {
         height: 180px;
     }
     
+    /* Reduce black areas by adjusting TV screen padding and sizing */
+    .retro-tv-frame .tv-screen {
+        padding: 2px; /* Reduced from 10px to minimize black areas */
+        min-height: 184px; /* Reduced to match image height + padding */
+    }
+    
     /* Single line channel display in black area below GIF - IDENTICAL to top title */
     .digital-channel-display {
         position: absolute;
-        bottom: -20px;
+        bottom: 35px; /* Shifted up 20px from 15px */
         left: 50%;
         transform: translateX(-50%);
         top: auto !important;

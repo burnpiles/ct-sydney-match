@@ -817,53 +817,35 @@
             submitBtn.textContent = 'Subscribing...';
             submitBtn.disabled = true;
             
-            // Your Beehiiv API credentials and data
-            const subscriptionData = {
-                email: email,
-                publication_id: 'af855f40-23cd-4896-98f2-57d8960740e1',
-                reactivate_existing: false,
-                send_welcome_email: true,
-                utm_source: 'contragames',
-                utm_medium: 'sydney_vision',
-                utm_campaign: 'game_subscription'
-            };
+            console.log('Subscribing via serverless function:', { email });
             
-            console.log('Subscribing with your API key and pub ID:', subscriptionData);
-            
-            // Direct API call to Beehiiv with your credentials
-            fetch(`https://api.beehiiv.com/v2/publications/af855f40-23cd-4896-98f2-57d8960740e1/subscriptions`, {
+            // Call our Vercel function instead of Beehiiv API directly
+            fetch('/api/subscribe', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer a7ROzXt8m5RiJWO9GRHDwWk7C0MNdbwyoxme0NYiCmUWaDzNkR1ulmdmdOT15r2U',
-                    'Accept': 'application/json'
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(subscriptionData)
+                body: JSON.stringify({ email })
             })
             .then(response => {
-                console.log('API Response status:', response.status);
-                console.log('API Response headers:', response.headers);
-                
-                if (response.ok) {
-                    return response.json();
-                } else {
-                    return response.text().then(text => {
-                        console.log('Error response body:', text);
-                        throw new Error(`API Error: ${response.status} - ${text}`);
-                    });
-                }
+                console.log('Function Response status:', response.status);
+                return response.json();
             })
             .then(data => {
-                console.log('Subscription successful:', data);
-                alert('Thank you for subscribing! Check your email for confirmation.');
-                emailInput.value = '';
-                
-                // Track subscription
-                if (typeof gtag !== 'undefined') {
-                    gtag('event', 'email_subscription', {
-                        'event_category': 'conversion',
-                        'event_label': 'start_screen'
-                    });
+                if (data.success) {
+                    console.log('Subscription successful:', data);
+                    alert('Thank you for subscribing! Check your email for confirmation.');
+                    emailInput.value = '';
+                    
+                    // Track subscription
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'email_subscription', {
+                            'event_category': 'conversion',
+                            'event_label': 'start_screen'
+                        });
+                    }
+                } else {
+                    throw new Error(data.error || 'Subscription failed');
                 }
             })
             .catch(error => {

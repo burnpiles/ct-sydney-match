@@ -23,9 +23,10 @@ export default async function handler(req, res) {
     }
 
     // Your Beehiiv API credentials
+    const publicationId = 'pub_af855f40-23cd-4896-98f2-57d8960740e1';
     const subscriptionData = {
       email: email,
-      publication_id: 'af855f40-23cd-4896-98f2-57d8960740e1',
+      publication_id: publicationId,
       reactivate_existing: false,
       send_welcome_email: true,
       utm_source: 'contragames',
@@ -34,7 +35,7 @@ export default async function handler(req, res) {
     };
 
     // Call Beehiiv API from server-side (no CORS issues)
-    const response = await fetch(`https://api.beehiiv.com/v2/publications/af855f40-23cd-4896-98f2-57d8960740e1/subscriptions`, {
+    const response = await fetch(`https://api.beehiiv.com/v2/publications/${publicationId}/subscriptions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
